@@ -1,20 +1,18 @@
 module input_fsm (
     input  wire        clk,
     input  wire        rst,
-    input  wire        key_valid,     // hay tecla válida
-    input  wire [3:0]  key_value,     // valor de la tecla
-    output reg  [11:0] num1,          // número 1 acumulado (3 dígitos BCD)
-    output reg  [11:0] num2,          // número 2 acumulado (3 dígitos BCD)
-    output reg         do_sum,        // pulso para ejecutar la suma
-    output reg  [1:0]  display_sel    // qué mostrar: 0=num1, 1=num2, 2=resultado
+    input  wire        key_valid,
+    input  wire [3:0]  key_value,
+    output reg  [11:0] num1,
+    output reg  [11:0] num2,
+    output reg         do_sum,
+    output reg  [1:0]  display_sel
 );
 
-// Definicion de teclas especiales
-localparam KEY_HASH  = 4'd13;  // # confirma num1
-localparam KEY_A     = 4'd10;  // A confirma num2 y suma
-localparam KEY_STAR  = 4'd14;  // * limpia todo
+localparam KEY_HASH = 4'd13;
+localparam KEY_A    = 4'd10;
+localparam KEY_STAR = 4'd14;
 
-// Estados
 typedef enum logic [1:0] {
     ESPERA,
     INGRESO_NUM1,
@@ -32,67 +30,69 @@ always_ff @(posedge clk) begin
         state <= next_state;
 end
 
-// Lógica de próximo estado y salidas
+// Lógica combinacional de transición
+always_comb begin
+    next_state = state;
+
+    case (state)
+        ESPERA:
+            if (key_valid && key_value <= 9)
+                next_state = INGRESO_NUM1;
+
+        INGRESO_NUM1:
+            if (key_valid) begin
+                if (key_value == KEY_HASH)
+                    next_state = INGRESO_NUM2;
+                else if (key_value == KEY_STAR)
+                    next_state = ESPERA;
+            end
+
+        INGRESO_NUM2:
+            if (key_valid) begin
+                if (key_value == KEY_A)
+                    next_state = SUMA;
+                else if (key_value == KEY_STAR)
+                    next_state = ESPERA;
+            end
+
+        SUMA:
+            if (key_valid && key_value == KEY_STAR)
+                next_state = ESPERA;
+    endcase
+end
+
+// Lógica secuencial de datos
 always_ff @(posedge clk) begin
     if (rst) begin
-        num1        <= 12'd0;
-        num2        <= 12'd0;
-        do_sum      <= 0;
+        num1 <= 0;
+        num2 <= 0;
+        do_sum <= 0;
         display_sel <= 0;
     end else begin
-        do_sum <= 0;  // por defecto no suma
+        do_sum <= 0;
 
         case (state)
             ESPERA: begin
-                if (key_valid && key_value <= 4'd9) begin
-                    // primer dígito de num1
-                    num1        <= {8'd0, key_value};
-                    display_sel <= 0;
-                    next_state  <= INGRESO_NUM1;
-                end
+                display_sel <= 0;
+                if (key_valid && key_value <= 9)
+                    num1 <= {8'd0, key_value};
             end
 
             INGRESO_NUM1: begin
-                if (key_valid) begin
-                    if (key_value == KEY_STAR) begin
-                        // limpiar todo
-                        num1       <= 0;
-                        next_state <= ESPERA;
-                    end else if (key_value == KEY_HASH) begin
-                        // confirmar num1 y pasar a num2
-                        display_sel <= 1;
-                        next_state  <= INGRESO_NUM2;
-                    end else if (key_value <= 4'd9) begin
-                        // acumular dígito: desplazar BCD y agregar nuevo dígito
-                        num1 <= {num1[7:0], key_value};
-                    end
-                end
+                display_sel <= 0;
+                if (key_valid && key_value <= 9)
+                    num1 <= {num1[7:0], key_value};
             end
 
             INGRESO_NUM2: begin
-                if (key_valid) begin
-                    if (key_value == KEY_STAR) begin
-                        num1       <= 0;
-                        num2       <= 0;
-                        next_state <= ESPERA;
-                    end else if (key_value == KEY_A) begin
-                        // confirmar num2 y ejecutar suma
-                        do_sum      <= 1;
-                        display_sel <= 2;
-                        next_state  <= SUMA;
-                    end else if (key_value <= 4'd9) begin
-                        num2 <= {num2[7:0], key_value};
-                    end
-                end
+                display_sel <= 1;
+                if (key_valid && key_value <= 9)
+                    num2 <= {num2[7:0], key_value};
             end
 
             SUMA: begin
-                if (key_valid && key_value == KEY_STAR) begin
-                    num1        <= 0;
-                    num2        <= 0;
-                    display_sel <= 0;
-                    next_state  <= ESPERA;
-                end
+                display_sel <= 2;
+                do_sum <= 1;
             end
         endcase
     end

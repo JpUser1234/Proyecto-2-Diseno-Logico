@@ -28,10 +28,10 @@ end
 
 always_comb begin
     case (sel)
-        2'd0: begin anode = 4'b1110; digit_out = digit0; end
-        2'd1: begin anode = 4'b1101; digit_out = digit1; end
-        2'd2: begin anode = 4'b1011; digit_out = digit2; end
-        2'd3: begin anode = 4'b0111; digit_out = digit3; end
+        2'd0: begin anode = 4'b1110; digit_out = digit0; end  // Display 0 activo (ACTIVA ALTA)
+        2'd1: begin anode = 4'b1101; digit_out = digit1; end  // Display 1 activo
+        2'd2: begin anode = 4'b1011; digit_out = digit2; end  // Display 2 activo
+        2'd3: begin anode = 4'b0111; digit_out = digit3; end  // Display 3 activo
     endcase
 end
 
