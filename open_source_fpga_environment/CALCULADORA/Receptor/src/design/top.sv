@@ -1,101 +1,99 @@
-module receiver_top(
-    input  wire i_h0,
-    input  wire i_h1,
-    input  wire i_h2,
-    input  wire i_h3,
-    input  wire i_h4,
-    input  wire i_h5,
-    input  wire i_h6,
-    input  wire i_parity,
-    input  wire i_ctrl,
-    output wire o_led0,
-    output wire o_led1,
-    output wire o_led2,
-    output wire o_led3,
-    output wire o_seg_a,
-    output wire o_seg_b,
-    output wire o_seg_c,
-    output wire o_seg_d,
-    output wire o_seg_e,
-    output wire o_seg_f,
-    output wire o_seg_g
+module top (
+    input  wire        clk,     // 27 MHz
+    input  wire        rst,
+    input  wire [3:0]  row,
+    output wire [3:0]  col,
+    output wire [6:0]  seg,
+    output wire [3:0]  anode
 );
 
-wire data0, data1, data2, data3;
-wire pos0, pos1, pos2;
-wire out0, out1, out2, out3;
-wire one_bit_error, two_bit_error;
+// Señales internas
+wire [3:0] row_sync;
+wire [3:0] row_clean;
+wire [3:0] col_scan;
+wire [3:0] key_value;
+wire       key_valid;
+wire [11:0] num1, num2;
+wire       do_sum;
+wire [1:0] display_sel;
+wire [13:0] result;
+wire [3:0] digit_mux;
+wire [3:0] d0, d1, d2, d3;
 
-wire no_error_flag;
-wire no_error_dash;
-assign no_error_flag = two_bit_error;
-assign no_error_dash = ~one_bit_error & ~two_bit_error & i_ctrl;
+// Sincronizador filas
+genvar i;
+generate
+    for (i = 0; i < 4; i++) begin : sync_rows
+        synchronizer SYNC (
+            .clk(clk), .rst(rst),
+            .async_in(row[i]),
+            .sync_out(row_sync[i])
+        );
+    end
+endgenerate
 
-hamming74_dec DEC(
-    .i_h0         (i_h0),
-    .i_h1         (i_h1),
-    .i_h2         (i_h2),
-    .i_h3         (i_h3),
-    .i_h4         (i_h4),
-    .i_h5         (i_h5),
-    .i_h6         (i_h6),
-    .i_parity     (i_parity),
-    .o_data0      (data0),
-    .o_data1      (data1),
-    .o_data2      (data2),
-    .o_data3      (data3),
-    .o_s1         (pos0),
-    .o_s2         (pos1),
-    .o_s4         (pos2),
-    .o_1bit_error (one_bit_error),
-    .o_2bit_error (two_bit_error)
+// Debounce filas
+generate
+    for (i = 0; i < 4; i++) begin : deb_rows
+        debounce DEB (
+            .clk(clk), .rst(rst),
+            .signal_in(row_sync[i]),
+            .signal_clean(row_clean[i])
+        );
+    end
+endgenerate
+
+// Scanner columnas
+col_scanner SCANNER (
+    .clk(clk), .rst(rst),
+    .col_scan(col_scan)
 );
-wire safe0, safe1, safe2, safe3;
+assign col = col_scan;
 
-assign safe0 = data0 & ~two_bit_error;
-assign safe1 = data1 & ~two_bit_error;
-assign safe2 = data2 & ~two_bit_error;
-assign safe3 = data3 & ~two_bit_error;
-led_display LEDS(
-    .i_data0 (safe0),
-    .i_data1 (safe1),
-    .i_data2 (safe2),
-    .i_data3 (safe3),
-    .o_led0  (o_led0),
-    .o_led1  (o_led1),
-    .o_led2  (o_led2),
-    .o_led3  (o_led3)
-);
-
-selector SEL(
-    .i_data0 (safe0),
-    .i_data1 (safe1),
-    .i_data2 (safe2),
-    .i_data3 (safe3),
-    .i_pos0  (pos0),
-    .i_pos1  (pos1),
-    .i_pos2  (pos2),
-    .i_ctrl  (i_ctrl),
-    .o_out0  (out0),
-    .o_out1  (out1),
-    .o_out2  (out2),
-    .o_out3  (out3)
+// Decoder teclado
+keypad_decoder DECODER (
+    .row(row_clean), .col(col_scan),
+    .key_value(key_value), .key_valid(key_valid)
 );
 
-bin_to_7seg SEG(
-    .i_d0    (out0),
-    .i_d1    (out1),
-    .i_d2    (out2),
-    .i_d3    (out3),
-    .i_no_error   (no_error_flag),
-    .i_no_err_dash(no_error_dash),
-    .o_seg_a (o_seg_a),
-    .o_seg_b (o_seg_b),
-    .o_seg_c (o_seg_c),
-    .o_seg_d (o_seg_d),
-    .o_seg_e (o_seg_e),
-    .o_seg_f (o_seg_f),
-    .o_seg_g (o_seg_g)
+// FSM
+input_fsm FSM (
+    .clk(clk), .rst(rst),
+    .key_valid(key_valid), .key_value(key_value),
+    .num1(num1), .num2(num2),
+    .do_sum(do_sum), .display_sel(display_sel)
+);
+
+// Sumador
+adder ADDER (
+    .clk(clk), .rst(rst),
+    .do_sum(do_sum),
+    .num1(num1), .num2(num2),
+    .result(result)
+);
+
+// Selección datos display
+wire [13:0] display_data;
+assign display_data = (display_sel == 2'd0) ? {2'd0, num1} :
+                      (display_sel == 2'd1) ? {2'd0, num2} :
+                                               result;
+
+assign d0 = display_data[3:0];
+assign d1 = display_data[7:4];
+assign d2 = display_data[11:8];
+assign d3 = display_data[13:12];
+
+// MUX displays
+display_mux MUX (
+    .clk(clk), .rst(rst),
+    .digit0(d0), .digit1(d1), .digit2(d2), .digit3(d3),
+    .anode(anode), .digit_out(digit_mux)
+);
+
+// 7 segmentos
+bcd_to_7seg SEG (
+    .digit(digit_mux),
+    .seg(seg)
 );
 
 endmodule
