@@ -1,66 +1,37 @@
-// Switches de dato (entradas)
-IO_LOC "i_data0" 28;
-IO_PORT "i_data0" IO_TYPE=LVCMOS18 PULL_MODE=DOWN;
+// ====== DISPLAY 7 SEG NUEVO (calculadora) ======
 
-IO_LOC "i_data1" 27;
-IO_PORT "i_data1" IO_TYPE=LVCMOS18 PULL_MODE=DOWN;
+IO_LOC "seg[6]" 55;  // A
+IO_PORT "seg[6]" IO_TYPE=LVCMOS18 DRIVE=8;
 
-IO_LOC "i_data2" 26;
-IO_PORT "i_data2" IO_TYPE=LVCMOS18 PULL_MODE=DOWN;
+IO_LOC "seg[5]" 54;  // B
+IO_PORT "seg[5]" IO_TYPE=LVCMOS18 DRIVE=8;
 
-IO_LOC "i_data3" 25;
-IO_PORT "i_data3" IO_TYPE=LVCMOS18 PULL_MODE=DOWN;
+IO_LOC "seg[4]" 53;  // C
+IO_PORT "seg[4]" IO_TYPE=LVCMOS18 DRIVE=8;
 
-// Switches posición de error (entradas)
-IO_LOC "i_pos0" 41;
-IO_PORT "i_pos0" IO_TYPE=LVCMOS18 PULL_MODE=DOWN;
+IO_LOC "seg[3]" 51;  // D
+IO_PORT "seg[3]" IO_TYPE=LVCMOS18 DRIVE=8;
 
-IO_LOC "i_pos1" 42;
-IO_PORT "i_pos1" IO_TYPE=LVCMOS18 PULL_MODE=DOWN;
+IO_LOC "seg[2]" 42;  // E
+IO_PORT "seg[2]" IO_TYPE=LVCMOS18 DRIVE=8;
 
-IO_LOC "i_pos2" 43;
-IO_PORT "i_pos2" IO_TYPE=LVCMOS18 PULL_MODE=DOWN;
+IO_LOC "seg[1]" 30;  // F
+IO_PORT "seg[1]" IO_TYPE=LVCMOS18 DRIVE=8;
 
-// Salida hacia receptor (7 bits)
-IO_LOC "o_tx0" 44;
-IO_PORT "o_tx0" IO_TYPE=LVCMOS18;
+IO_LOC "seg[0]" 29;  // G
+IO_PORT "seg[0]" IO_TYPE=LVCMOS18 DRIVE=8;
 
-IO_LOC "o_tx1" 45;
-IO_PORT "o_tx1" IO_TYPE=LVCMOS18;
 
-IO_LOC "o_tx2" 46;
-IO_PORT "o_tx2" IO_TYPE=LVCMOS18;
+// ====== ANODOS ======
 
-IO_LOC "o_tx3" 47;
-IO_PORT "o_tx3" IO_TYPE=LVCMOS18;
+IO_LOC "anode[0]" <PIN_AN0>;
+IO_PORT "anode[0]" IO_TYPE=LVCMOS18 DRIVE=8;
 
-IO_LOC "o_tx4" 48;
-IO_PORT "o_tx4" IO_TYPE=LVCMOS18;
+IO_LOC "anode[1]" <PIN_AN1>;
+IO_PORT "anode[1]" IO_TYPE=LVCMOS18 DRIVE=8;
 
-IO_LOC "o_tx5" 49;
-IO_PORT "o_tx5" IO_TYPE=LVCMOS18;
+IO_LOC "anode[2]" <PIN_AN2>;
+IO_PORT "anode[2]" IO_TYPE=LVCMOS18 DRIVE=8;
 
-IO_LOC "o_tx6" 76;
-IO_PORT "o_tx6" IO_TYPE=LVCMOS18;
-
-// Display 7 segmentos transmisor
-IO_LOC "o_seg_a" 55;
-IO_PORT "o_seg_a" IO_TYPE=LVCMOS18;
-
-IO_LOC "o_seg_b" 54;
-IO_PORT "o_seg_b" IO_TYPE=LVCMOS18;
-
-IO_LOC "o_seg_c" 53;
-IO_PORT "o_seg_c" IO_TYPE=LVCMOS18;
-
-IO_LOC "o_seg_d" 51;
-IO_PORT "o_seg_d" IO_TYPE=LVCMOS18;
-
-IO_LOC "o_seg_e" 42;
-IO_PORT "o_seg_e" IO_TYPE=LVCMOS18;
-
-IO_LOC "o_seg_f" 30;
-IO_PORT "o_seg_f" IO_TYPE=LVCMOS18;
-
-IO_LOC "o_seg_g" 29;
-IO_PORT "o_seg_g" IO_TYPE=LVCMOS18;
+IO_LOC "anode[3]" <PIN_AN3>;
+IO_PORT "anode[3]" IO_TYPE=LVCMOS18 DRIVE=8;
