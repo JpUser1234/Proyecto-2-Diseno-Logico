@@ -1,13 +1,12 @@
 module adder (
     input  wire        clk,
     input  wire        rst,
-    input  wire        do_sum,     // pulso para ejecutar la suma
-    input  wire [11:0] num1,       // número 1 en BCD (3 dígitos × 4 bits)
-    input  wire [11:0] num2,       // número 2 en BCD (3 dígitos × 4 bits)
-    output reg  [13:0] result      // resultado en binario (hasta 1998)
+    input  wire        do_sum,
+    input  wire [11:0] num1,
+    input  wire [11:0] num2,
+    output reg  [13:0] result
 );
 
-// Extrae los dígitos BCD y convierte a binario
 wire [9:0] num1_bin;
 wire [9:0] num2_bin;
 

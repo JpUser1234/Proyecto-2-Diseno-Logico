@@ -1,5 +1,0 @@
-{
-    "name": "calculadora",
-    "includedFiles": "all",
-    "constraintsFile": "src/constr/constraints.cst"
-}

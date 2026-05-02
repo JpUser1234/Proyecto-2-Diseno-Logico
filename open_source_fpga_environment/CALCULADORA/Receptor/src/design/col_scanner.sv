@@ -4,7 +4,7 @@ module col_scanner (
     output reg  [3:0] col_scan
 );
 
-localparam MAX_COUNT = 27_000; // ~1 kHz
+localparam MAX_COUNT = 27_000;
 reg [14:0] counter;
 
 always_ff @(posedge clk) begin

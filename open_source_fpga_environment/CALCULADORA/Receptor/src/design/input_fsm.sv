@@ -22,7 +22,6 @@ typedef enum logic [1:0] {
 
 state_t state, next_state;
 
-// Registro de estado
 always_ff @(posedge clk) begin
     if (rst)
         state <= ESPERA;
@@ -30,15 +29,12 @@ always_ff @(posedge clk) begin
         state <= next_state;
 end
 
-// Lógica combinacional de transición
 always_comb begin
     next_state = state;
-
     case (state)
         ESPERA:
             if (key_valid && key_value <= 9)
                 next_state = INGRESO_NUM1;
-
         INGRESO_NUM1:
             if (key_valid) begin
                 if (key_value == KEY_HASH)
@@ -46,7 +42,6 @@ always_comb begin
                 else if (key_value == KEY_STAR)
                     next_state = ESPERA;
             end
-
         INGRESO_NUM2:
             if (key_valid) begin
                 if (key_value == KEY_A)
@@ -54,45 +49,44 @@ always_comb begin
                 else if (key_value == KEY_STAR)
                     next_state = ESPERA;
             end
-
         SUMA:
             if (key_valid && key_value == KEY_STAR)
                 next_state = ESPERA;
     endcase
 end
 
-// Lógica secuencial de datos
 always_ff @(posedge clk) begin
     if (rst) begin
-        num1 <= 0;
-        num2 <= 0;
-        do_sum <= 0;
+        num1        <= 0;
+        num2        <= 0;
+        do_sum      <= 0;
         display_sel <= 0;
     end else begin
         do_sum <= 0;
-
         case (state)
             ESPERA: begin
                 display_sel <= 0;
                 if (key_valid && key_value <= 9)
                     num1 <= {8'd0, key_value};
             end
-
             INGRESO_NUM1: begin
                 display_sel <= 0;
                 if (key_valid && key_value <= 9)
                     num1 <= {num1[7:0], key_value};
             end
-
             INGRESO_NUM2: begin
                 display_sel <= 1;
                 if (key_valid && key_value <= 9)
                     num2 <= {num2[7:0], key_value};
+                if (next_state == SUMA)
+                    do_sum <= 1;
             end
-
             SUMA: begin
                 display_sel <= 2;
-                do_sum <= 1;
+                if (key_valid && key_value == KEY_STAR) begin
+                    num1 <= 0;
+                    num2 <= 0;
+                end
             end
         endcase
     end

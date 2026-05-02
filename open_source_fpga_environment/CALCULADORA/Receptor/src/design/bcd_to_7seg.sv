@@ -1,11 +1,11 @@
 module bcd_to_7seg (
     input  wire [3:0] digit,
-    output reg  [6:0] seg    // seg[6]=A ... seg[0]=G
+    output reg  [6:0] seg
 );
 
-always @(*) begin
+always_comb begin
     case (digit)
-        4'd0: seg = 7'b1111110; // A B C D E F G
+        4'd0: seg = 7'b1111110;
         4'd1: seg = 7'b0110000;
         4'd2: seg = 7'b1101101;
         4'd3: seg = 7'b1111001;
