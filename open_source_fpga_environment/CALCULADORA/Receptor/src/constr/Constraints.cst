@@ -1,29 +1,29 @@
 IO_LOC  "rst" 3;
 IO_PORT "rst" IO_TYPE=LVCMOS18;
 
-IO_LOC  "col[0]" 32;
-IO_PORT "col[0]" IO_TYPE=LVCMOS33;
-
-IO_LOC  "col[1]" 31;
-IO_PORT "col[1]" IO_TYPE=LVCMOS33;
-
-IO_LOC  "col[2]" 49;
-IO_PORT "col[2]" IO_TYPE=LVCMOS33;
-
-IO_LOC  "col[3]" 48;
-IO_PORT "col[3]" IO_TYPE=LVCMOS33;
-
-IO_LOC  "row[0]" 70;
+IO_LOC  "row[0]" 32;
 IO_PORT "row[0]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
 
-IO_LOC  "row[1]" 71;
+IO_LOC  "row[1]" 31;
 IO_PORT "row[1]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
 
-IO_LOC  "row[2]" 72;
+IO_LOC  "row[2]" 49;
 IO_PORT "row[2]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
 
-IO_LOC  "row[3]" 73;
+IO_LOC  "row[3]" 48;
 IO_PORT "row[3]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
+
+IO_LOC  "col[0]" 70;
+IO_PORT "col[0]" IO_TYPE=LVCMOS33;
+
+IO_LOC  "col[1]" 71;
+IO_PORT "col[1]" IO_TYPE=LVCMOS33;
+
+IO_LOC  "col[2]" 72;
+IO_PORT "col[2]" IO_TYPE=LVCMOS33;
+
+IO_LOC  "col[3]" 73;
+IO_PORT "col[3]" IO_TYPE=LVCMOS33;
 
 IO_LOC  "seg[6]" 74;
 IO_PORT "seg[6]" DRIVE=8 IO_TYPE=LVCMOS33;

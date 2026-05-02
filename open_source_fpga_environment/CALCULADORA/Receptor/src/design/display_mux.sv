@@ -32,6 +32,7 @@ always_comb begin
         2'd1: begin anode = 4'b0010; digit_out = digit1; end
         2'd2: begin anode = 4'b0100; digit_out = digit2; end
         2'd3: begin anode = 4'b1000; digit_out = digit3; end
+        default: begin anode = 4'b0001; digit_out = digit0; end
     endcase
 end
 

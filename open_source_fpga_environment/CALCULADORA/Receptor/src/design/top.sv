@@ -17,7 +17,6 @@ wire        do_sum;
 wire [1:0]  display_sel;
 wire [13:0] result;
 wire [3:0]  digit_mux;
-wire [3:0]  d0, d1, d2, d3;
 
 genvar i;
 generate
@@ -66,20 +65,15 @@ adder ADDER (
     .result(result)
 );
 
-wire [13:0] display_data;
-assign display_data = (display_sel == 2'd0) ? {2'd0, num1}  :
-                      (display_sel == 2'd1) ? {2'd0, num2}  :
-                                               result;
-
-assign d0 = display_data[3:0];
-assign d1 = display_data[7:4];
-assign d2 = display_data[11:8];
-assign d3 = display_data[13:12];
-
+// Forzar dígitos fijos para probar los 4 displays
 display_mux MUX (
     .clk(clk), .rst(rst),
-    .digit0(d0), .digit1(d1), .digit2(d2), .digit3(d3),
-    .anode(anode), .digit_out(digit_mux)
+    .digit0(4'd1),
+    .digit1(4'd2),
+    .digit2(4'd3),
+    .digit3(4'd4),
+    .anode(anode),
+    .digit_out(digit_mux)
 );
 
 bcd_to_7seg SEG (
