@@ -1,35 +1,47 @@
 module debounce #(
-    parameter CLK_FREQ   = 27_000_000,
-    parameter DEBOUNCE_MS = 20
+    parameter N = 19  // 2^19 / 27MHz ≈ 19ms
 )(
     input  wire clk,
-    input  wire rst,
-    input  wire signal_in,
-    output reg  signal_clean
+    input  wire rst,        // activo en bajo (rst_n)
+    input  wire button_in,
+    output reg  DB_out
 );
 
-localparam MAX_COUNT = (CLK_FREQ/1000) * DEBOUNCE_MS;
+reg [N-1:0] q_reg;
+reg [N-1:0] q_next;
+reg DFF1, DFF2;
 
-reg [$clog2(MAX_COUNT)-1:0] counter;
-reg state;
+wire q_reset;
+wire q_add;
+
+assign q_reset = DFF1 ^ DFF2;
+assign q_add   = ~q_reg[N-1];
+
+always_comb begin
+    case ({q_reset, q_add})
+        2'b00:   q_next = q_reg;
+        2'b01:   q_next = q_reg + 1;
+        default: q_next = {N{1'b0}};
+    endcase
+end
 
 always_ff @(posedge clk) begin
-    if (rst) begin
-        counter      <= 0;
-        state        <= 0;
-        signal_clean <= 0;
+    if (!rst) begin
+        DFF1  <= 0;
+        DFF2  <= 0;
+        q_reg <= 0;
     end else begin
-        if (signal_in != state) begin
-            counter <= counter + 1;
-            if (counter == MAX_COUNT - 1) begin
-                state        <= signal_in;
-                signal_clean <= signal_in;
-                counter      <= 0;
-            end
-        end else begin
-            counter <= 0;
-        end
+        DFF1  <= button_in;
+        DFF2  <= DFF1;
+        q_reg <= q_next;
     end
+end
+
+always_ff @(posedge clk) begin
+    if (!rst)
+        DB_out <= 0;
+    else if (q_reg[N-1])
+        DB_out <= DFF2;
 end
 
 endmodule

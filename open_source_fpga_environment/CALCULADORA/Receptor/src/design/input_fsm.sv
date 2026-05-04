@@ -23,7 +23,7 @@ typedef enum logic [1:0] {
 state_t state, next_state;
 
 always_ff @(posedge clk) begin
-    if (rst)
+    if (!rst)
         state <= ESPERA;
     else
         state <= next_state;
@@ -56,7 +56,7 @@ always_comb begin
 end
 
 always_ff @(posedge clk) begin
-    if (rst) begin
+    if (!rst) begin
         num1        <= 0;
         num2        <= 0;
         do_sum      <= 0;

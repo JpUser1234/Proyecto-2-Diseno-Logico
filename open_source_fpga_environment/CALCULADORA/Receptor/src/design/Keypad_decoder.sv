@@ -7,12 +7,12 @@ module keypad_decoder (
     output reg         key_valid
 );
 
-reg [3:0] col_latched;  // columna guardada cuando se detectó la tecla
+reg [3:0] col_latched;
 reg [3:0] row_prev;
 reg       was_valid;
 
 always_ff @(posedge clk) begin
-    if (rst) begin
+    if (!rst) begin
         col_latched <= 0;
         row_prev    <= 0;
         key_valid   <= 0;
@@ -22,11 +22,9 @@ always_ff @(posedge clk) begin
         row_prev  <= row;
         key_valid <= 0;
 
-        // Capturar columna en el flanco de subida de cualquier fila
         if (row != 0 && row_prev == 0)
             col_latched <= col;
 
-        // Generar pulso de un solo ciclo cuando hay tecla
         if (row != 0 && col_latched != 0 && !was_valid) begin
             was_valid <= 1;
             key_valid <= 1;
@@ -54,7 +52,6 @@ always_ff @(posedge clk) begin
             endcase
         end
 
-        // Limpiar cuando se suelta la tecla
         if (row == 0) begin
             was_valid   <= 0;
             col_latched <= 0;

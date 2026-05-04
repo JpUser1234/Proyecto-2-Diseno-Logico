@@ -10,7 +10,6 @@ module top (
 wire rst_n;
 assign rst_n = ~rst;
 
-wire [3:0]  row_sync;
 wire [3:0]  row_clean;
 wire [3:0]  col_scan;
 wire [3:0]  key_value;
@@ -24,21 +23,11 @@ wire [3:0]  d0, d1, d2, d3;
 
 genvar i;
 generate
-    for (i = 0; i < 4; i++) begin : sync_rows
-        synchronizer SYNC (
-            .clk(clk), .rst(rst_n),
-            .async_in(row[i]),
-            .sync_out(row_sync[i])
-        );
-    end
-endgenerate
-
-generate
     for (i = 0; i < 4; i++) begin : deb_rows
         debounce DEB (
             .clk(clk), .rst(rst_n),
-            .signal_in(row_sync[i]),
-            .signal_clean(row_clean[i])
+            .button_in(row[i]),
+            .DB_out(row_clean[i])
         );
     end
 endgenerate
