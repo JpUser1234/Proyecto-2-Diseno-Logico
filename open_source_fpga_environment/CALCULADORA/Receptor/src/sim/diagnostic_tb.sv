@@ -6,6 +6,9 @@ wire [3:0] col;
 wire [6:0] seg;
 wire [3:0] anode;
 
+integer i;
+integer found_pulse;
+
 top dut (
     .clk(clk),
     .rst(rst),
@@ -51,8 +54,18 @@ initial begin
     $display("Configurando row = 0001 (presionar fila 0)");
     row = 4'b0001;
 
-    // Esperar debounce
-    repeat(2000) @(posedge clk);
+    // Esperar debounce (~2^14 ciclos / 27MHz ≈ 0.6 ms)
+    found_pulse = 0;
+    for (i = 0; i < 40000; i = i + 1) begin
+        @(posedge clk);
+        if (dut.DECODER.key_valid) begin
+            found_pulse = 1;
+            $display("PULSO key_valid detectado en %0t | row_clean=%b | col_scan=%b | col_latched=%b | key_value=%d | num1=%d",
+                     $time,
+                     {dut.deb_rows[3].DEB.DB_out, dut.deb_rows[2].DEB.DB_out, dut.deb_rows[1].DEB.DB_out, dut.deb_rows[0].DEB.DB_out},
+                     dut.SCANNER.col_scan, dut.DECODER.col_latched, dut.DECODER.key_value, dut.FSM.num1);
+        end
+    end
 
     $display("Después de debounce:");
     $display("row = %b", row);
@@ -61,6 +74,15 @@ initial begin
     $display("key_valid = %b (esperado: 1)", dut.DECODER.key_valid);
     $display("key_value = %d (esperado: 1)", dut.DECODER.key_value);
     $display("num1 = %d (esperado: 1)", dut.FSM.num1);
+    if (!found_pulse) $display("No se detectó pulso key_valid durante la ventana de debounce");
+
+    $display("\n--- Observando señales durante 50 ciclos ---");
+    repeat (50) begin
+        @(posedge clk);
+        $display("Time=%0t | row_clean=%b | col_scan=%b | key_valid=%b | key_value=%d | num1=%d", 
+                 $time, {dut.deb_rows[3].DEB.DB_out, dut.deb_rows[2].DEB.DB_out, dut.deb_rows[1].DEB.DB_out, dut.deb_rows[0].DEB.DB_out},
+                 dut.SCANNER.col_scan, dut.DECODER.key_valid, dut.DECODER.key_value, dut.FSM.num1);
+    end
 
     $display("\n--- 4. Verificar display ---");
     $display("seg = %b", seg);

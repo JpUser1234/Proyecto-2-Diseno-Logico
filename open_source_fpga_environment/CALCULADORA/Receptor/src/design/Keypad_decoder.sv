@@ -22,7 +22,7 @@ always_ff @(posedge clk) begin
         row_prev  <= row;
         key_valid <= 0;
 
-        if (row != 0 && row_prev == 0)
+        if (row != 0 && col_latched == 0)
             col_latched <= col;
 
         if (row != 0 && col_latched != 0 && !was_valid) begin
