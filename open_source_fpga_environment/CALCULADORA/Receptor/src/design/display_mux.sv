@@ -14,7 +14,7 @@ reg [14:0] counter;
 reg [1:0]  sel;
 
 always_ff @(posedge clk) begin
-    if (rst) begin
+    if (!rst) begin
         counter   <= 0;
         sel       <= 0;
         anode     <= 4'b0001;

@@ -8,7 +8,7 @@ localparam MAX_COUNT = 27_000;
 reg [14:0] counter;
 
 always_ff @(posedge clk) begin
-    if (!rst) begin      // reset activo en bajo
+    if (!rst) begin
         counter  <= 0;
         col_scan <= 4'b0001;
     end else begin

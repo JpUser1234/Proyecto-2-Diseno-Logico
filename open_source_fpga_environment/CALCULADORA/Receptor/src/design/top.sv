@@ -8,7 +8,7 @@ module top (
 );
 
 wire rst_n;
-assign rst_n = ~rst;
+assign rst_n = rst;
 
 wire [3:0]  row_clean;
 wire [3:0]  col_scan;
