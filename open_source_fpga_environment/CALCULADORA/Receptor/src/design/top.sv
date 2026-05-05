@@ -14,7 +14,7 @@ wire [3:0]  row_clean;
 wire [3:0]  col_scan;
 wire [3:0]  key_value;
 wire        key_valid;
-wire [11:0] num1, num2;
+wire [13:0] num1, num2;
 wire        do_sum;
 wire [1:0]  display_sel;
 wire [13:0] result;
@@ -58,15 +58,33 @@ adder ADDER (
     .result(result)
 );
 
-wire [13:0] display_data;
-assign display_data = (display_sel == 2'd0) ? {2'd0, num1}  :
-                      (display_sel == 2'd1) ? {2'd0, num2}  :
-                                               result;
+wire [3:0] d0_num1 = num1 % 10;
+wire [3:0] d1_num1 = (num1 / 10) % 10;
+wire [3:0] d2_num1 = (num1 / 100) % 10;
+wire [3:0] d3_num1 = 0;
 
-assign d0 = display_data[3:0];
-assign d1 = display_data[7:4];
-assign d2 = display_data[11:8];
-assign d3 = display_data[13:12];
+wire [3:0] d0_num2 = num2 % 10;
+wire [3:0] d1_num2 = (num2 / 10) % 10;
+wire [3:0] d2_num2 = (num2 / 100) % 10;
+wire [3:0] d3_num2 = 0;
+
+wire [3:0] d0_result = result % 10;
+wire [3:0] d1_result = (result / 10) % 10;
+wire [3:0] d2_result = (result / 100) % 10;
+wire [3:0] d3_result = (result / 1000) % 10;
+
+assign d0 = (display_sel == 2'd0) ? d0_num1 :
+            (display_sel == 2'd1) ? d0_num2 :
+                                     d0_result;
+assign d1 = (display_sel == 2'd0) ? d1_num1 :
+            (display_sel == 2'd1) ? d1_num2 :
+                                     d1_result;
+assign d2 = (display_sel == 2'd0) ? d2_num1 :
+            (display_sel == 2'd1) ? d2_num2 :
+                                     d2_result;
+assign d3 = (display_sel == 2'd0) ? d3_num1 :
+            (display_sel == 2'd1) ? d3_num2 :
+                                     d3_result;
 
 display_mux MUX (
     .clk(clk), .rst(rst_n),
