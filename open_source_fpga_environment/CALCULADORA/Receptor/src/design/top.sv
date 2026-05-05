@@ -14,7 +14,7 @@ wire [3:0]  row_clean;
 wire [3:0]  col_scan;
 wire [3:0]  key_value;
 wire        key_valid;
-wire [13:0] num1, num2;
+wire [11:0] num1, num2;
 wire        do_sum;
 wire [1:0]  display_sel;
 wire [13:0] result;

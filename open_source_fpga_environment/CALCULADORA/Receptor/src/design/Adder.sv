@@ -2,8 +2,8 @@ module adder (
     input  wire        clk,
     input  wire        rst,
     input  wire        do_sum,
-    input  wire [13:0] num1,
-    input  wire [13:0] num2,
+    input  wire [11:0] num1,
+    input  wire [11:0] num2,
     output reg  [13:0] result
 );
 

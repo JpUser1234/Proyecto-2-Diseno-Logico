@@ -3,8 +3,8 @@ module input_fsm (
     input  wire        rst,
     input  wire        key_valid,
     input  wire [3:0]  key_value,
-    output reg  [13:0] num1,
-    output reg  [13:0] num2,
+    output reg  [11:0] num1,
+    output reg  [11:0] num2,
     output reg         do_sum,
     output reg  [1:0]  display_sel
 );
