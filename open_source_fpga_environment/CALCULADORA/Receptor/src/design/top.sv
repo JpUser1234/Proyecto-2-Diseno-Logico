@@ -58,31 +58,15 @@ adder ADDER (
     .result(result)
 );
 
-wire [3:0] d0_num1 = num1 % 10;
-wire [3:0] d1_num1 = (num1 / 10) % 10;
-wire [3:0] d2_num1 = (num1 / 100) % 10;
+wire [13:0] display_data;
+assign display_data = (display_sel == 2'd0) ? {2'd0, num1}  :
+                      (display_sel == 2'd1) ? {2'd0, num2}  :
+                                               result;
 
-wire [3:0] d0_num2 = num2 % 10;
-wire [3:0] d1_num2 = (num2 / 10) % 10;
-wire [3:0] d2_num2 = (num2 / 100) % 10;
-
-wire [3:0] d0_result = result[3:0];
-wire [3:0] d1_result = result[7:4];
-wire [3:0] d2_result = result[11:8];
-wire [3:0] d3_result = result[13:12];
-
-assign d0 = (display_sel == 2'd0) ? d0_num1 :
-            (display_sel == 2'd1) ? d0_num2 :
-                                     d0_result;
-assign d1 = (display_sel == 2'd0) ? d1_num1 :
-            (display_sel == 2'd1) ? d1_num2 :
-                                     d1_result;
-assign d2 = (display_sel == 2'd0) ? d2_num1 :
-            (display_sel == 2'd1) ? d2_num2 :
-                                     d2_result;
-assign d3 = (display_sel == 2'd0) ? 4'd0 :
-            (display_sel == 2'd1) ? 4'd0 :
-                                     d3_result;
+assign d0 = display_data[3:0];
+assign d1 = display_data[7:4];
+assign d2 = display_data[11:8];
+assign d3 = display_data[13:12];
 
 display_mux MUX (
     .clk(clk), .rst(rst_n),
