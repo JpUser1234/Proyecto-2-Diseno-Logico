@@ -72,12 +72,12 @@ always_ff @(posedge clk) begin
             INGRESO_NUM1: begin
                 display_sel <= 0;
                 if (key_valid && key_value <= 9)
-                    num1 <= num1 * 10 + key_value;
+                    num1 <= {num1[7:0], key_value};
             end
             INGRESO_NUM2: begin
                 display_sel <= 1;
                 if (key_valid && key_value <= 9)
-                    num2 <= num2 * 10 + key_value;
+                    num2 <= {num2[7:0], key_value};
                 if (next_state == SUMA)
                     do_sum <= 1;
             end
