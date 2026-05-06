@@ -9,13 +9,24 @@ module input_fsm (
     output reg  [1:0]  display_sel
 );
 
-localparam KEY_A    = 4'd10;  // SUMA
-localparam KEY_B    = 4'd11;
-localparam KEY_C    = 4'd12;
-localparam KEY_HASH = 4'd13;  // pasar a num2
-localparam KEY_STAR = 4'd14;  // limpiar
-localparam KEY_D    = 4'd15;
+localparam KEY_HASH = 4'd13;
+localparam KEY_A    = 4'd10;
+localparam KEY_STAR = 4'd14;
 
+// ================= EDGE DETECTION =================
+reg key_valid_d;
+wire key_pulse;
+
+always_ff @(posedge clk) begin
+    if (!rst)
+        key_valid_d <= 0;
+    else
+        key_valid_d <= key_valid;
+end
+
+assign key_pulse = key_valid & ~key_valid_d;
+
+// ================= ESTADOS =================
 typedef enum logic [1:0] {
     ESPERA,
     INGRESO_NUM1,
@@ -25,7 +36,7 @@ typedef enum logic [1:0] {
 
 state_t state, next_state;
 
-// ===== ESTADO =====
+// ================= STATE REGISTER =================
 always_ff @(posedge clk) begin
     if (!rst)
         state <= ESPERA;
@@ -33,18 +44,16 @@ always_ff @(posedge clk) begin
         state <= next_state;
 end
 
-// ===== TRANSICIONES =====
+// ================= TRANSICIONES =================
 always_comb begin
     next_state = state;
 
-    if (key_valid) begin
+    if (key_pulse) begin
         case (state)
 
             ESPERA:
-                case (key_value)
-                    4'd0,4'd1,4'd2,4'd3,4'd4,4'd5,4'd6,4'd7,4'd8,4'd9:
-                        next_state = INGRESO_NUM1;
-                endcase
+                if (key_value <= 9)
+                    next_state = INGRESO_NUM1;
 
             INGRESO_NUM1:
                 case (key_value)
@@ -66,7 +75,7 @@ always_comb begin
     end
 end
 
-// ===== DATOS =====
+// ================= DATOS =================
 always_ff @(posedge clk) begin
     if (!rst) begin
         num1 <= 0;
@@ -76,42 +85,34 @@ always_ff @(posedge clk) begin
     end else begin
         do_sum <= 0;
 
-        if (key_valid) begin
-            case (key_value)
+        if (key_pulse) begin
+            case (state)
 
-                // ===== NÚMEROS =====
-                4'd0,4'd1,4'd2,4'd3,4'd4,4'd5,4'd6,4'd7,4'd8,4'd9: begin
-                    case (state)
-                        ESPERA, INGRESO_NUM1: begin
-                            display_sel <= 0;
-                            num1 <= {num1[7:0], key_value};
-                        end
-                        INGRESO_NUM2: begin
-                            display_sel <= 1;
-                            num2 <= {num2[7:0], key_value};
-                        end
-                    endcase
+                ESPERA: begin
+                    display_sel <= 0;
+                    if (key_value <= 9)
+                        num1 <= {8'd0, key_value};
                 end
 
-                // ===== # PASAR A NUM2 =====
-                KEY_HASH: begin
+                INGRESO_NUM1: begin
+                    display_sel <= 0;
+                    if (key_value <= 9)
+                        num1 <= {num1[7:0], key_value};
+                end
+
+                INGRESO_NUM2: begin
                     display_sel <= 1;
+                    if (key_value <= 9)
+                        num2 <= {num2[7:0], key_value};
+
+                    if (key_value == KEY_A)
+                        do_sum <= 1;
                 end
 
-                // ===== A SUMAR =====
-                KEY_A: begin
-                    do_sum <= 1;
+                SUMA: begin
                     display_sel <= 2;
                 end
 
-                // ===== * LIMPIAR =====
-                KEY_STAR: begin
-                    num1 <= 0;
-                    num2 <= 0;
-                    display_sel <= 0;
-                end
-
-                // B, C, D no hacen nada (pero ya no rompen nada)
             endcase
         end
     end

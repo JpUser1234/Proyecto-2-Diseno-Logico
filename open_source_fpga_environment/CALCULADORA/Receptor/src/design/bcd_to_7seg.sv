@@ -1,5 +1,5 @@
 module bcd_to_7seg (
-    input [3:0] digit,
+    input  [3:0] digit,
     output reg [6:0] seg
 );
 

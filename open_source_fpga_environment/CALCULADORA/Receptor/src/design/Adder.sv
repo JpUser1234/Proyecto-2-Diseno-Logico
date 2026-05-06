@@ -1,10 +1,10 @@
 module adder (
-    input  wire        clk,
-    input  wire        rst,
-    input  wire        do_sum,
-    input  wire [11:0] num1,
-    input  wire [11:0] num2,
-    output reg  [13:0] result
+    input wire clk,
+    input wire rst,
+    input wire do_sum,
+    input wire [11:0] num1,
+    input wire [11:0] num2,
+    output reg [13:0] result
 );
 
 wire [9:0] num1_bin;
@@ -19,7 +19,7 @@ assign num2_bin = (num2[11:8] * 10'd100) +
                    num2[3:0];
 
 always_ff @(posedge clk) begin
-    if (!rst)        // reset activo en bajo
+    if (!rst)
         result <= 0;
     else if (do_sum)
         result <= num1_bin + num2_bin;

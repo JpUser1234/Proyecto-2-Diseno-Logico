@@ -7,22 +7,25 @@ module top (
     output wire [3:0] anode
 );
 
-wire rst_n;
-assign rst_n = rst;
+wire rst_n = rst;
 
+// ================= KEYPAD INPUT =================
 wire [3:0] row_clean;
 wire [3:0] col_scan;
 wire [3:0] key_value;
 wire key_valid;
 
+// ================= FSM / DATA =================
 wire [11:0] num1, num2;
 wire do_sum;
 wire [1:0] display_sel;
 wire [13:0] result;
 
+// ================= DISPLAY WIRES =================
 wire [3:0] digit_mux;
 wire [3:0] d0, d1, d2, d3;
 
+// ================= DEBOUNCE ROWS =================
 genvar i;
 generate
     for (i = 0; i < 4; i++) begin : deb_rows
@@ -35,6 +38,7 @@ generate
     end
 endgenerate
 
+// ================= COLUMN SCANNER =================
 col_scanner SCANNER (
     .clk(clk),
     .rst(rst_n),
@@ -43,6 +47,7 @@ col_scanner SCANNER (
 
 assign col = col_scan;
 
+// ================= KEYPAD DECODER =================
 keypad_decoder DECODER (
     .clk(clk),
     .rst(rst_n),
@@ -52,6 +57,7 @@ keypad_decoder DECODER (
     .key_valid(key_valid)
 );
 
+// ================= FSM =================
 input_fsm FSM (
     .clk(clk),
     .rst(rst_n),
@@ -63,6 +69,7 @@ input_fsm FSM (
     .display_sel(display_sel)
 );
 
+// ================= ADDER =================
 adder ADDER (
     .clk(clk),
     .rst(rst_n),
@@ -72,18 +79,26 @@ adder ADDER (
     .result(result)
 );
 
+// ===================================================
+// 🔥 FIX 1 + FIX 2 (DISPLAY PACKING CORREGIDO)
+// ===================================================
+
 wire [13:0] display_data;
 
 assign display_data =
-    (display_sel == 2'd0) ? {2'd0, num1} :
-    (display_sel == 2'd1) ? {2'd0, num2} :
-    result;
+    (display_sel == 2'd0) ? {2'b00, num1} :
+    (display_sel == 2'd1) ? {2'b00, num2} :
+                            result;
 
+// ================= NIBBLE SPLIT =================
 assign d0 = display_data[3:0];
 assign d1 = display_data[7:4];
 assign d2 = display_data[11:8];
-assign d3 = display_data[13:12];
 
+// 🔴 FIX CRÍTICO: nunca usar 2 bits para BCD
+assign d3 = 4'd0;
+
+// ================= DISPLAY MULTIPLEXER =================
 display_mux MUX (
     .clk(clk),
     .rst(rst_n),
@@ -95,6 +110,7 @@ display_mux MUX (
     .digit_out(digit_mux)
 );
 
+// ================= 7 SEG DECODER =================
 bcd_to_7seg SEG (
     .digit(digit_mux),
     .seg(seg)
