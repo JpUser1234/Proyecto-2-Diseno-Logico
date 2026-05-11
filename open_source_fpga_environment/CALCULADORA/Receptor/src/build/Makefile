@@ -21,6 +21,7 @@ SOURCES := $(filter-out ../design/Testbench_decodif_Hamming.sv, $(wildcard ../de
 #Fuente de simulacion
 #aca va el testbench que quieran simular
 TESTBENCH = ../sim/diagnostic_tb.sv
+TESTBENCH_CALC = ../sim/calculator_full_tb.sv
 
 # Constraints para el proyecto
 #aca va el archivo de constraints del proyecto
@@ -29,9 +30,11 @@ CONSTRAINTS = ../constr/Constraints.cst
 #el top se indica sin la extension .v, esto hace referencia al nombre que le pusieron al módulo y no al archivo en si.
 TOP_DESIGN = top
 TOP_TB     = diagnostic_tb
+TOP_TB_CALC = calculator_full_tb
 
 #nombre del vcd que va a generar el tb
 VCD_FILE = top_tb.vcd
+VCD_FILE_CALC = calculator_full_tb.vcd
 
 
 all: synth pnr bitstream load
@@ -56,16 +59,66 @@ bitstream: ${PROYECT}_pnr.json
 		
 #Generar vcd con icarus verilog
 test: ${SOURCES} ${TESTBENCH}
+	@echo "Compiling diagnostic testbench..."
 	@iverilog -o ${PROYECT}_test.o -s ${TOP_TB} -g2005-sv ${TESTBENCH} ${SOURCES}
+	@echo "Running simulation..."
 	@vvp ${PROYECT}_test.o 
-	
+
+# ============================================================================
+# CALCULATOR COMPREHENSIVE TESTS
+# ============================================================================
+
+# Test the full calculator with comprehensive test cases
+test-calc: ${SOURCES} ${TESTBENCH_CALC}
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════╗"
+	@echo "║  CALCULATOR FULL TESTBENCH SIMULATION                       ║"
+	@echo "║  Compiling with iverilog...                                 ║"
+	@echo "╚══════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@iverilog -o calculator_test.o -s ${TOP_TB_CALC} -g2005-sv ${TESTBENCH_CALC} ${SOURCES}
+	@echo "Running comprehensive calculator tests..."
+	@echo ""
+	@vvp calculator_test.o
+	@echo ""
+	@echo "✓ Simulation complete! VCD file generated: ${VCD_FILE_CALC}"
+
+# Compile and run with test report
+test-calc-verbose: ${SOURCES} ${TESTBENCH_CALC}
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════╗"
+	@echo "║  CALCULATOR TESTBENCH - VERBOSE MODE                        ║"
+	@echo "╚══════════════════════════════════════════════════════════════╝"
+	@iverilog -Wall -o calculator_test_verbose.o -s ${TOP_TB_CALC} -g2005-sv ${TESTBENCH_CALC} ${SOURCES}
+	@vvp -v calculator_test_verbose.o 2>&1 | tee calculator_test_output.log
+	@echo ""
+	@echo "Test output saved to: calculator_test_output.log"
+
+# Run tests and immediately open waveform
+test-calc-wave: test-calc
+	@echo "Opening GTKWave with calculator waveforms..."
+	@gtkwave ${VCD_FILE_CALC} &
+
+# Run all component tests
+test-all: test test-calc
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════╗"
+	@echo "║  ALL TESTS COMPLETED                                        ║"
+	@echo "╚══════════════════════════════════════════════════════════════╝"
+
 #Visualizar los diagramas de tiempo con GTKWave
 wv: ${VCD_FILE}
-	gtkwave ${VCD_FILE} 
+	@echo "Opening GTKWave with waveforms..."
+	gtkwave ${VCD_FILE} &
+
+# Open calculator waveforms
+wv-calc: ${VCD_FILE_CALC}
+	@echo "Opening GTKWave with calculator waveforms..."
+	gtkwave ${VCD_FILE_CALC} & 
         
 # Cargar el bitstream en la FPGA
 load: ${PROYECT}_${BOARD}.fs
 	@set PATH=$(OSS_CAD_PATH) && "$(OSS_CAD_BIN)\openFPGALoader.exe" -b ${BOARD} ${PROYECT}_${BOARD}.fs 
 
-.PHONY: load  wv
+.PHONY: load wv wv-calc test test-calc test-calc-verbose test-calc-wave test-all synth pnr bitstream
 .INTERMEDIATE: ${PROYECT}_pnr.json ${PROYECT}.json
