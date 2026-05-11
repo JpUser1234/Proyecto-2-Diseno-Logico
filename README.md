@@ -2,7 +2,7 @@
 
 Escuela de Electrónica  
 
-**Proyecto 1**
+**Proyecto 2**
 
 Diseño lógico
 
@@ -20,9 +20,23 @@ El presente proyecto corresponde al Proyecto Corto II del curso EL-3307 Diseño 
 
 # Problema
 
+Se requiere diseñar un dispositivo capaz de funcionar como una calculadora básica que reciba entradas asincrónicas (teclado mecánico), las procese de forma sincrónica a 27 MHz y visualice la información en hardware externo.  
+
 # Objetivos
 
+* Implementar un algoritmo de captura y eliminación de rebote (debouncing) para un teclado hexadecimal.
+* Desarrollar un sistema de control de visualización para displays de 7 segmentos con multiplexado.
+* Validar el diseño mediante simulaciones RTL y post-síntesis.
+
+# Especificaciones
+
+* Frecuencia de Reloj: 27 MHz.
+* Entrada: Teclado hexadecimal 4x4.
+* Salida: 4 displays de 7 segmentos
+* Capacidad: Dos números positivos de hasta 3 dígitos cada uno (0-999).
+
 # Funcionamiento general del circuito
+
 
 
 # Diagrama de bloques de subsistemas
