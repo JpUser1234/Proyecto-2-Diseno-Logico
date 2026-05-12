@@ -291,12 +291,39 @@ El contador de debounce está diseñado para esperar aproximadamente 20 ms antes
 
 ## Contadores sincrónicos
 
+__¿Qué hace la salida RCO del 74LS163?__
 
+RCO (Ripple Carry Output) es la salida de acarreo del contador. Se pone en alto durante exactamente un ciclo de reloj cuando el contador alcanza su valor máximo (1111 en binario, es decir 15), siempre y cuando la entrada T (ENT) esté habilitada en alto. Su propósito es indicar al siguiente contador en cascada que el contador actual está a punto de desbordarse y volver a cero, permitiendo así encadenar múltiples contadores para formar contadores de mayor número de bits.
+
+__¿Por qué RCO y T están conectadas entre los dos contadores?__
+
+La salida RCO del contador menos significativo (LSB) se conecta directamente a la entrada T (ENT) del contador más significativo (MSB). Esta conexión implementa el mecanismo de habilitación en cascada: el contador MSB solo avanza un conteo cuando el contador LSB ha llegado a su valor máximo (RCO = 1). De esta forma, por cada 16 pulsos de reloj que recibe el LSB (un ciclo completo de 0 a 15), el MSB avanza exactamente un conteo, replicando el comportamiento de un contador de 8 bits completo. Sin esta conexión, ambos contadores avanzarían de forma independiente y no formarían un contador concatenado coherente.
+
+__Diferencia entre las entradas T (ENT) y P (ENP)__
+
+Ambas entradas T y P son entradas de habilitación del conteo, pero con una diferencia clave en su efecto sobre la salida RCO:
+
+* P (ENP): Habilita el conteo interno del contador, pero no afecta la salida RCO. Si P está en bajo, el contador deja de contar pero RCO puede seguir activa si T está en alto y el contador está en su valor máximo.
+* T (ENT): Habilita el conteo y controla directamente la salida RCO. Si T está en bajo, el contador deja de contar y RCO se fuerza a bajo, independientemente del valor actual del contador.
+
+Para que el contador cuente normalmente, ambas entradas deben estar en alto. La distinción es importante en cascada: se usa T para la conexión entre etapas precisamente porque T es la que controla RCO, garantizando que el acarreo hacia la siguiente etapa solo se propague cuando la etapa actual está habilitada.
+
+__Retardo de propagación luego del flanco positivo de reloj__
+
+__Glitches en la salida RCO del contador menos significativo__
+
+Al observar la salida RCO del contador LSB con el analizador lógico del osciloscopio DSO-X 2002A, se logró capturar la presencia de glitches (fallas transitorias) en dicha señal. Estos glitches aparecen como pulsos espurios de duración muy corta que ocurren en los flancos de reloj durante los que el contador transita entre estados cercanos al valor máximo.
+
+La razón de estos glitches es la siguiente: aunque el 74LS163 es un contador sincrónico (todos sus flip-flops cambian en el mismo flanco de reloj), la lógica combinacional que genera la señal RCO depende de las salidas Qa, Qb, Qc y Qd simultáneamente. Debido a que los retardos de propagación de cada flip-flop no son idénticos, durante un instante muy breve después del flanco de reloj las salidas pueden presentar estados intermedios inconsistentes. Si en ese instante transitorio la lógica ve accidentalmente el patrón 1111, genera un pulso espurio en RCO.
+
+Este tipo de falla es esperable precisamente en las transiciones donde múltiples bits cambian de estado al mismo tiempo, es decir, cuando el contador pasa por valores como 0111→1000 o 1110→1111→0000. Son los casos en que la mayor cantidad de bits cambian simultáneamente, maximizando la probabilidad de que las diferencias en retardo de propagación generen un estado intermedio que active falsamente la lógica de RCO. Los glitches son muy difíciles de capturar porque duran apenas unos pocos nanosegundos, razón por la cual el analizador lógico, con su muestreo discreto, los detecta con menor confiabilidad que el modo analógico del osciloscopio.
 
 
 ## Construcción de un cerrojo Set-Reset con compuertas NAND
 
 ### Diagrama del circuito
+
+
 
 ### Funcionamiento del cerrojo SR con NAND
 
