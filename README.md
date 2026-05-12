@@ -110,11 +110,48 @@ La conexión física de los displays utiliza transistores NPN como interruptores
 
 ## FSM principal
 
+Esta FSM es el cerebro del subsistema de lectura del teclado. Controla el flujo completo de la interacción con el usuario, desde la espera inicial hasta la ejecución de la suma. Cuenta con cuatro estados:
+
+| Estado | Descripcion |
+|--------|-------------|
+| Espera | Estado inicial (y de reset). El display muestra cero. El sistema aguarda cualquier pulsación numérica para comenzar. |
+| Ingreso num1 | El sistema acumula los dígitos del primer número desplazando el registro BCD hacia la izquierda con cada nueva tecla numérica (0–9). Los dígitos se muestran en el display en tiempo real. |
+| Ingreso num2 | Idéntico al estado anterior pero para el segundo número. El display muestra los dígitos de NUM2 a medida que se ingresan. |
+| Suma | Se ejecuta la suma aritmética de NUM1 y NUM2 y se despliega el resultado en los 4 displays. El sistema permanece aquí hasta que el usuario presione * para reiniciar. |
+|
+
+Las transiciones entre estados se producen exclusivamente por teclas especiales:
+
+* Cualquier tecla numérica (0–9) en Espera → transición a Ingreso NUM1
+* Tecla # → confirma NUM1, transición a Ingreso NUM2
+* Tecla A → confirma NUM2, transición a Suma
+* Tecla * (desde cualquier estado) → reset, regreso a Espera
+
 <img src="pic/FSM_Principal.jpg" width="600">
 
 ## Debounce
 
+Esta FSM se encarga de filtrar el ruido mecánico inherente a cualquier tecla física. Cuando se presiona un botón mecánico, la señal no sube limpiamente de 0 a 1, sino que oscila brevemente antes de estabilizarse. La FSM detecta y descarta estas oscilaciones. Cuenta con cuatro estados:
+
+| Estado | Descripcion |
+|--------|-------------|
+| Inactivo | Estado de reposo. No hay tecla presionada (tecla = 0). El sistema espera que la señal suba. |
+| Contando | La señal subió, lo que podría ser el inicio de una pulsación real o un rebote. Se inicia un contador que espera DEBOUNCE_TICKS pulsos del tick para verificar la estabilidad. |
+| Activo | La señal se mantuvo estable durante el tiempo requerido: la tecla se considera válida (tecla_valida = 1). El sistema espera ahora a que la señal baje. |
+| Rebotando | La señal bajó después de haber sido validada. Se espera un nuevo periodo de estabilidad de 20 ms antes de regresar a Inactivo, evitando detectar el rebote de salida como una nueva pulsación. |
+|
+
+Las transiciones entre estados se producen de la siguiente manera:
+
+* Inactivo → Contando: la señal sube (posible pulsación detectada)
+* Contando → Inactivo: la señal baja antes de completar el tiempo (era un rebote, se ignora)
+* Contando → Activo: el tiempo de estabilidad se cumple (pulsación válida confirmada)
+* Activo → Rebotando: la señal baja (el usuario soltó la tecla)
+* Rebotando → Inactivo: el tiempo de espera de salida se cumple (sistema listo para nueva tecla)
+
 <img src="pic/FSM_Debounce.jpg" width="600">
+
+
 
 
 # Ejemplo y análisis de una simulación funcional del sistema completo
