@@ -2,8 +2,6 @@
 
 Escuela de Electrónica  
 
-Prueba git
-
 **Proyecto 2**
 
 Diseño lógico
@@ -98,7 +96,7 @@ __Control de ánodos:__ Activa únicamente el ánodo del display seleccionado. L
 | Display "0" | 1110 | Unidades |
 | Display "1" | 1101 | Decenas |
 | Display "2" | 1011 | Centenas |
-| Display "3" | 0111 | MIllares |
+| Display "3" | 0111 | Millares |
 
 __Codificador BCD a 7 segmentos:__ Es un bloque puramente combinacional (sin reloj) que implementa una tabla de verdad directa: cada valor del 0 al 9 genera el patrón fijo de 7 bits que activa los segmentos correctos del display para representar ese dígito en decimal.
 
@@ -288,4 +286,39 @@ El contador de debounce está diseñado para esperar aproximadamente 20 ms antes
 
 
 
+
 ## Construcción de un cerrojo Set-Reset con compuertas NAND
+
+### Diagrama del circuito
+
+### Funcionamiento del cerrojo SR con NAND
+
+Un cerrojo SR construido con compuertas NAND opera con lógica negada respecto al cerrojo con NOR: las entradas son activas en bajo. El cerrojo está sincronizado por reloj, lo que significa que los cambios de estado en Q y QN solo ocurren mientras CLK está en alto; cuando CLK está en bajo, el cerrojo retiene su estado independientemente de S y R.
+
+El funcionamiento por caso es el siguiente:
+
+__Set (S=0, R=1, CLK=1):__ La salida Q pasa a alto y QN pasa a bajo. El LED de Q enciende y el de QN apaga. El cerrojo retiene este estado incluso después de que S regrese a alto, demostrando su capacidad de memoria.
+
+__Reset (S=1, R=0, CLK=1):__ La salida Q pasa a bajo y QN pasa a alto. El LED de Q apaga y el de QN enciende. El cerrojo retiene este estado incluso después de que R regrese a alto.
+
+__Retención (S=1, R=1, CLK=1):__ Ninguna entrada activa. El cerrojo mantiene su último estado sin cambios, los LEDs no varían.
+
+__Inhibición por reloj (CLK=0):__ Independientemente del estado de S y R, el cerrojo no cambia de estado, confirmando el comportamiento sincrónico del circuito.
+
+__Tabla de verdad__
+
+| CLK | S | R | Q (siguiente) | Qn (siguiente) | Observacion |
+|-----|---|---|---------------|----------------|-------------|
+| 0 | X | X | Q | Qn | Estado retenido (reloj en bajo) |
+| 1 | 1 | 1 | Q | Qn | Sin cambio, retencion |
+| 1 | 0 | 1 | 1 | 0 | Set: Q pasa a alto |
+| 1 | 0 | 0 | - | - | Estado prohibido |
+
+
+__Estado prohibido: S=0 y R=0 simultáneamente__
+
+Al llevar ambas entradas S y R a bajo simultáneamente con CLK en alto, se observó que ambos LEDs, el de Q y el de QN, encendieron al mismo tiempo. Esto confirma experimentalmente el estado prohibido del cerrojo SR: ambas salidas quedan en alto de forma simultánea, violando la condición fundamental de que Q y QN deben ser complementarias entre sí. Si posteriormente ambas entradas regresan a alto al mismo tiempo, el estado final de Q queda indeterminado y depende de las características físicas de las compuertas (cuál reacciona ligeramente más rápido), pudiendo resultar en cualquier estado estable o incluso en oscilación. Por esta razón, en un diseño real se debe garantizar mediante lógica de control que S y R nunca se activen de forma simultánea.
+
+__Utilidad del cerrojo SR__
+
+El cerrojo SR es uno de los elementos de memoria más básicos en el diseño digital. Sus aplicaciones más comunes incluyen la eliminación de rebotes en botones y switches mecánicos (exactamente el problema abordado en el Subsistema 1 de este proyecto), el almacenamiento temporal de señales de control, y como bloque base para construir flip-flops más complejos como el flip-flop D o el JK. La versión sincronizada por reloj que se construyó en este ejercicio garantiza que los cambios de estado ocurran de forma controlada y predecible, en línea con los principios del diseño digital sincrónico.
