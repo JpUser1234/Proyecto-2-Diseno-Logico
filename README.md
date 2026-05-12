@@ -356,6 +356,14 @@ La razón de estos glitches es la siguiente: aunque el 74LS163 es un contador si
 Este tipo de falla es esperable precisamente en las transiciones donde múltiples bits cambian de estado al mismo tiempo, es decir, cuando el contador pasa por valores como 0111→1000 o 1110→1111→0000. Son los casos en que la mayor cantidad de bits cambian simultáneamente, maximizando la probabilidad de que las diferencias en retardo de propagación generen un estado intermedio que active falsamente la lógica de RCO. Los glitches son muy difíciles de capturar porque duran apenas unos pocos nanosegundos, razón por la cual el analizador lógico, con su muestreo discreto, los detecta con menor confiabilidad que el modo analógico del osciloscopio.
 
 
+A continuación se puedes apreciar los resultados del osciloscopio graficados a partir de los csv resultantes:
+
+<img src="pic/pr6_1a.png" width="600">
+<img src="pic/pr6_1a3.png" width="600">
+<img src="pic/pr6_1a4.png" width="600">
+
+
+
 ## Construcción de un cerrojo Set-Reset con compuertas NAND
 
 ### Diagrama del circuito
