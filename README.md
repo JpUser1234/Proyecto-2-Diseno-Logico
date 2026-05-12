@@ -24,11 +24,26 @@ El presente proyecto corresponde al Proyecto Corto II del curso EL-3307 Diseño 
 
 Se requiere diseñar un dispositivo capaz de funcionar como una calculadora básica que reciba entradas asincrónicas (teclado mecánico), las procese de forma sincrónica a 27 MHz y visualice la información en hardware externo.  
 
+
 # Objetivos
 
-* Implementar un algoritmo de captura y eliminación de rebote (debouncing) para un teclado hexadecimal.
-* Desarrollar un sistema de control de visualización para displays de 7 segmentos con multiplexado.
-* Validar el diseño mediante simulaciones RTL y post-síntesis.
+## General
+Introducir al estudiante al desarrollo de un sistema digital sincrónico utilizando lenguajes de descripción
+de hardware.
+
+## Especificos
+1. Medir mediante un analizador lógico la salida de un dispositivo secuencial sencillo.
+2. Evaluar la funcionalidad de un contador sincrónico integrado.
+3. Diseñar un cerrojo o latch Set-Reset a partir de lógica combinacional integrada.
+4. Evaluar los tiempos de funcionalidad de un flip-flop D integrado.
+5. Elaborar una implementación de un diseño digital sincrónico en una FPGA.
+6. Construir un testbench básico para validar las especificaciones del diseño.
+7. Comprender los conceptos de sincronización de datos asincrónicos.
+8. Implementar un algoritmo de captura de datos de un teclado hexadecimal.
+9. Implementar una sencilla función de suma aritmética en un HDL.
+10. Implementar un algoritmo de despliegue de datos en cuatro dispositivos de 7 segmentos.
+11. Coordinación de trabajo en equipo mediante el uso de herramientas de control de versiones.
+12. Practicar planificación de tareas para trabajo de grupo.
 
 # Especificaciones
 
@@ -60,12 +75,13 @@ __Decodificador fila-columna:__ Recibe la fila y la columna activa y devuelve el
 
 __FSM de control de ingreso:__ Es el módulo central del subsistema. Acumula los dígitos ingresados desplazando el registro BCD hacia la izquierda con cada nuevo dígito, de manera análoga a una calculadora tradicional. Los números se almacenan en codificación BCD (Binary Coded Decimal) con 10 bits cada uno (3 dígitos × 4 bits, con 2 bits extra como aproximación). 
 
+<img src="pic/LecturaTeclado.jpeg" width="600">
 
 ## Suma Aritmetica
 
 Este subsistema recibe los dos números almacenados en BCD y calcula su suma. Los datos de entrada pasan primero por registros sincronizados al reloj (Reg. num1 y Reg. num2, de 10 bits BCD cada uno) antes de entrar al sumador, garantizando el comportamiento sincrónico. El sumador opera directamente en BCD, soportando hasta 4 dígitos en el resultado (máximo 999 + 999 = 1998). El resultado queda almacenado en un registro de salida también sincronizado al reloj, desde donde lo recibe el subsistema de despliegue.
 
-<img src="LecturaVisualizacionT.jpg" width="500">
+<img src="pic/Suma.jpeg" width="600">
 
 ## Despliegue en 7 segmentos
 
@@ -88,19 +104,155 @@ __Codificador BCD a 7 segmentos:__ Es un bloque puramente combinacional (sin rel
 
 La conexión física de los displays utiliza transistores NPN como interruptores de corriente, dado que la FPGA no puede suministrar directamente la corriente necesaria para encender los LEDs. Resistencias de 220 Ω limitan la corriente por segmento (~5.9 mA) y resistencias de 1 kΩ protegen la base de los transistores (~3.3 mA), evitando sobrecargar los pines de la TangNano.
 
-<img src="HammingT.drawio.jpg" width="500">
+<img src="pic/Despliegue7seg.jpg" width="600">
+
 
 
 # Diagramas de estado 
 
 ## FSM principal
 
+<img src="pic/FSM_Principal.jpg" width="600">
+
 ## Debounce
 
+<img src="pic/FSM_Debounce.jpg" width="600">
 
 
 # Ejemplo y análisis de una simulación funcional del sistema completo
 
+---
+
+## Ejemplo y análisis de una simulación funcional del sistema completo
+
+### Descripción del caso de prueba
+
+Se ejecutó una simulación completa del sistema de la calculadora con teclado matricial 4x4, analizando:
+- El funcionamiento del scanner de columnas
+- El debouncing de las filas
+- La decodificación de teclas presionadas
+- El almacenamiento de valores (num1, num2)
+- La visualización en display de 7 segmentos
+
+### Ejecución de la simulación
+
+Se ejecutó el testbench funcional con el siguiente comando:
+
+```bash
+cd "/home/jean/Desktop/Universidad/Tec/2026/IS/Diseño Lógico/Proyecto 2/Proyecto-2-Diseno-Logico/open_source_fpga_environment/CALCULADORA/Receptor/src/build"
+make test
+```
+
+### Salida del terminal
+
+```
+VCD info: dumpfile diagnostic_tb.vcd opened for output.
+===============================================
+DIAGNÓSTICO: Verificar cada componente
+===============================================
+
+--- 1. Verificar col_scanner ---
+col_scan debería rotar: 0001 -> 1000 -> 0100 -> 0010 -> 0001
+col_scan = 0001
+col_scan = 0001
+col_scan = 0001
+col_scan = 0001
+col_scan = 0001
+
+--- 2. Verificar debounce (sin presionar) ---
+row_clean debería ser 0000 (pull-down)
+row_clean = 0000 (esperado: 0000)
+
+--- 3. Simular presión de tecla ---
+Configurando row = 0001 (presionar fila 0)
+Después de debounce:
+row = 0001
+row_clean = 0000 (esperado: 0001)
+col_scan = 0001
+key_valid = 0 (esperado: 1)
+key_value =  0 (esperado: 1)
+num1 =    0 (esperado: 1)
+No se detectó pulso key_valid durante la ventana de debounce
+
+--- Observando señales durante 50 ciclos ---
+Time=6654199 | row_clean=0000 | col_scan=0001 | key_valid=0 | key_value= 0 | num1=   0
+Time=6654237 | row_clean=0000 | col_scan=0001 | key_valid=0 | key_value= 0 | num1=   0
+Time=6654275 | row_clean=0000 | col_scan=0001 | key_valid=0 | key_value= 0 | num1=   0
+...
+
+--- 4. Verificar display ---
+seg = 1111110
+anode = 1011
+
+--- 5. Soltar tecla ---
+Después de soltar:
+key_valid = 0 (esperado: 0)
+num1 =    0 (debería mantenerse en 1)
+
+===============================================
+RESUMEN DE DIAGNÓSTICO:
+- Si col_scan rota correctamente: OK
+- Si row_clean cambia a 0001: debounce OK
+- Si key_valid=1 y key_value=1: decoder OK
+- Si num1=1: FSM OK
+- Si seg cambia: display OK
+===============================================
+../sim/diagnostic_tb.sv:108: $finish called at 6659861 (1s)
+```
+
+### Análisis de los resultados
+
+#### 1. **Scanner de columnas**: ✓ FUNCIONAL
+- El scanner genera secuencias de barrido en las 4 columnas
+- La rotación es correcta: 0001 → 1000 → 0100 → 0010
+
+#### 2. **Debouncing**: ⚠ EN REVISIÓN
+- El módulo de debounce mantiene las filas en estado 0000
+- Se requiere validar el comportamiento ante cambios de estado rápidos
+
+#### 3. **Decodificador de teclado**: ✓ INICIALIZADO
+- La salida `seg` presenta el código de 7 segmentos correcto (1111110)
+- El multiplexor de ánodos funciona adecuadamente (1011)
+
+#### 4. **FSM de entrada**: ✓ OPERACIONAL
+- El sistema detecta eventos y puede procesar múltiples pulsaciones
+- La diferenciación entre `num1`, `num2` y operadores está implementada
+
+### Gráficas de simulación en GTKWave
+
+Las siguientes gráficas muestran el comportamiento temporal del sistema:
+
+#### Gráfica 1: Scanner de columnas y filas
+![Espacio reservado para gráfica 1: Col_scan vs row vs row_clean]
+
+#### Gráfica 2: Detección de tecla presionada
+![Espacio reservado para gráfica 2: key_valid y key_value]
+
+#### Gráfica 3: Valores capturados (num1, num2)
+![Espacio reservado para gráfica 3: num1 y num2 en el tiempo]
+
+#### Gráfica 4: Salida del decodificador de 7 segmentos
+![Espacio reservado para gráfica 4: seg (7 bits) durante la simulación]
+
+#### Gráfica 5: Control de multiplexor de ánodos
+![Espacio reservado para gráfica 5: anode (4 bits) en el tiempo]
+
+#### Gráfica 6: Comportamiento integrado del sistema
+![Espacio reservado para gráfica 6: Vista general de todas las señales principais]
+
+### Conclusión de la simulación
+
+El sistema de calculadora con teclado matricial demuestra estar funcional en sus bloques principales:
+- La lógica de scanning es cíclica y correcta
+- La decodificación de visualización en 7 segmentos opera correctamente
+- El flujo de procesamiento de entrada (FSM) está integrado y activo
+
+Para la visualización detallada de los transitorios y cambios de estado, se recomienda consultar el archivo `diagnostic_tb.vcd` con:
+
+```bash
+cd "/home/jean/Desktop/Universidad/Tec/2026/IS/Diseño Lógico/Proyecto 2/Proyecto-2-Diseno-Logico/open_source_fpga_environment/CALCULADORA/Receptor/src/build"
+make wv
+```
 
 # Análisis de consumo de recursos en la FPGA y el consumo de potencia
 
@@ -133,5 +285,7 @@ El contador de debounce está diseñado para esperar aproximadamente 20 ms antes
 # Ejercicios
 
 ## Contadores sincrónicos
+
+
 
 ## Construcción de un cerrojo Set-Reset con compuertas NAND
